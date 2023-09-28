@@ -1,0 +1,43 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/Ometeor-Zheero-OMZ/go_web/pkg/config"
+	"github.com/Ometeor-Zheero-OMZ/go_web/pkg/handlers"
+	"github.com/Ometeor-Zheero-OMZ/go_web/pkg/render"
+)
+
+const portNumber = ":8080"
+
+// main is the main function
+func main() {
+	var app config.AppConfig
+
+	tc, err := render.CreateTemplateCache()
+	if err != nil {
+		log.Fatal("cannot create template cache")
+	}
+
+	app.TemplateCache = tc
+	app.UseCache = true
+
+	repo := handlers.NewRepo(&app)
+	handlers.NewHandlers(repo)
+
+	render.NewTemplates(&app)
+
+	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
+
+	srv := &http.Server{
+		Addr:    portNumber,
+		Handler: routes(&app),
+	}
+
+	err = srv.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
